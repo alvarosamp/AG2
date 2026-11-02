@@ -5,6 +5,19 @@ Classifica clientes em **HoReCa** (hotel, restaurante ou café) ou **Retail** (v
 
 **Integrantes:** Álvaro Careli, Iury Teixeira
 
+## Vídeo de apresentação
+
+O vídeo de apresentação do projeto (~10 MB) está na raiz do repositório: [apresentacao.mp4](apresentacao.mp4).
+
+**Como assistir**
+
+- **No GitHub:** abra o arquivo `apresentacao.mp4` no repositório (https://github.com/alvarosamp/AG2) e use o player do navegador; se não carregar, clique em **Download raw file**.
+- **Localmente:** depois do `git clone` (veja abaixo), abra `apresentacao.mp4` em qualquer player (VLC, Filmes e TV, etc.). No PowerShell: `start apresentacao.mp4`; no Linux/macOS: `xdg-open apresentacao.mp4` / `open apresentacao.mp4`.
+
+**Como rodar o que é mostrado no vídeo**
+
+Siga a seção [Executar](#executar): instale as dependências e rode `main.py`. Para o modo interativo use `python main.py`; para só treinar e avaliar, `--sem-interacao`; para a comparação entre modelos, `--comparar`.
+
 ## Executar
 
 Requer Python 3.11+ (validado com 3.14, pandas 3.0.3, scikit-learn 1.8.0).
