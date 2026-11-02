@@ -7,45 +7,31 @@ Classifica clientes em **HoReCa** (hotel, restaurante ou café) ou **Retail** (v
 
 ## Executar
 
-Requer Python 3.11 ou superior. Validado com Python 3.14, pandas 3.0.3 e scikit-learn 1.8.0.
-Clone o repositório (ou extraia o ZIP) e abra o terminal na pasta que contém `main.py`.
+Requer Python 3.11+ (validado com 3.14, pandas 3.0.3, scikit-learn 1.8.0).
 
 ```powershell
 git clone https://github.com/alvarosamp/Ag02.git
 cd Ag02
-```
-
-```powershell
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 .venv\Scripts\python.exe main.py
 ```
 
-No Linux/macOS, use `.venv/bin/python` nos dois últimos comandos.
-O programa treina, mostra as métricas e solicita sete inteiros para classificar um novo cliente. Não use separadores de milhares: escreva `10000`.
-Ao final, digite `s` para outra previsão; qualquer outra resposta encerra. Entradas inválidas podem ser corrigidas. Ctrl+C encerra a entrada interativa.
+No Linux/macOS, use `.venv/bin/python`.
 
-Somente treinamento e avaliação:
+O programa treina, mostra as métricas e abre o modo interativo: informe a região (`Lisbon`, `Oporto`, `Other` ou `0`, `1`, `2`) e os seis gastos anuais (inteiros, sem separador de milhares). Cada campo inválido é pedido de novo; `s` classifica outro cliente; Ctrl+C sai.
 
-```powershell
-.venv\Scripts\python.exe main.py --sem-interacao
-```
-
-Comparar os quatro algoritmos permitidos pelo enunciado na mesma divisão treino/teste:
-
-```powershell
-.venv\Scripts\python.exe main.py --sem-interacao --comparar
-```
-
-Previsão pela linha de comando (valores ilustrativos, sem classe verdadeira conhecida):
+| Opção | Efeito |
+|---|---|
+| `--sem-interacao` | só treina e avalia |
+| `--comparar` | compara Decision Tree, kNN, MLP e Naive Bayes |
+| `--prever R F M G Fr D De` | classifica direto pela linha de comando |
 
 ```powershell
 .venv\Scripts\python.exe main.py --prever 2 10000 5000 8000 1000 3000 1000
 ```
 
-Ordem: Region, Fresh, Milk, Grocery, Frozen, Detergents Paper, Delicatessen.
-Regiões: 0 = Lisbon, 1 = Oporto, 2 = Other. Os seis gastos são anuais em unidades monetárias.
-O resultado é uma estimativa do modelo, não uma confirmação do canal real.
+Ordem: Region, Fresh, Milk, Grocery, Frozen, Detergents Paper, Delicatessen. O resultado é uma estimativa do modelo, não o canal real.
 
 ## Correspondência com as nove etapas
 
@@ -57,15 +43,24 @@ O resultado é uma estimativa do modelo, não uma confirmação do canal real.
 6. **Modelo:** `DecisionTreeClassifier`, com `max_depth` e `min_samples_leaf` escolhidos por `GridSearchCV` (validação cruzada estratificada, 5 folds, métrica f1_macro) usando somente o conjunto de treino.
 7. **Treinamento e previsão:** `fit` somente no treino; `predict` no teste.
 8. **Avaliação:** acurácia, `classification_report`, matriz de confusão e comparação com classe majoritária.
-9. **Novas entradas:** `input` com validação e `predict`, exibindo HoReCa ou Retail. Alternativamente, use `--prever`.
+9. **Novas entradas:** `input` com validação por campo e `predict`, exibindo HoReCa ou Retail e a confiança. Alternativamente, use `--prever`.
 
 ## Justificativa e limites
 
-A árvore de decisão é um dos modelos permitidos e permite inspecionar regras em `resultados/arvore.txt`. Divide os exemplos por limiares dos atributos, escolhidos pelo critério Gini. `max_depth` e `min_samples_leaf` são escolhidos por validação cruzada só no conjunto de treino (`GridSearchCV`, 5 folds, f1_macro); o teste nunca participa da busca, só da avaliação final. Árvores não exigem padronização dos gastos.
+**Por que a árvore de decisão**
 
-A escolha da Decision Tree entre os quatro modelos permitidos foi comparada empiricamente: veja [Comparação entre modelos](#comparação-entre-modelos) abaixo.
+- **Interpretável:** as regras ficam em `resultados/arvore.txt`, com limiares dos atributos escolhidos pelo critério **Gini**.
+- **Sem padronização:** árvores **não exigem** escalar os gastos.
+- **Hiperparâmetros sem vazamento:** `max_depth` e `min_samples_leaf` vêm de `GridSearchCV` (5 folds, f1_macro) **somente no treino**; o **teste nunca participa da busca**, só da avaliação final.
+- **Escolha comparada:** a Decision Tree foi comparada aos outros três modelos permitidos em [Comparação entre modelos](#comparação-entre-modelos).
 
-A codificação ordinal de Region segue a exigência da atividade, embora a região seja nominal. O conjunto é pequeno e desbalanceado (298 HoReCa e 142 Retail); por isso são apresentadas métricas por classe e baseline. A avaliação usa uma única divisão fixa, não validação cruzada. O desempenho em clientes de outra população ou período não foi verificado. Não se deve escolher parâmetros por repetidas consultas ao conjunto de teste.
+**Limites**
+
+- **Region é nominal**, mas a **codificação ordinal** (0, 1, 2) é exigida pela atividade.
+- **Conjunto pequeno e desbalanceado:** 440 amostras, **298 HoReCa** e **142 Retail**; por isso há métricas por classe e baseline.
+- **Divisão única e fixa** (`random_state=42`), sem validação cruzada na avaliação final.
+- **Generalização não verificada:** o desempenho em **outra população ou período** é desconhecido.
+- **Não ajuste parâmetros consultando o teste:** isso invalidaria a avaliação.
 
 ## Resultados reproduzidos
 
@@ -148,12 +143,6 @@ Verificações automatizadas:
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s testes -v
 ```
-
-## Apresentação e entrega
-
-Consulte `ROTEIRO_VIDEO.md` para uma apresentação de aproximadamente 6min30s.
-O vídeo ainda precisa ser gravado pelos alunos. Incluam os nomes dos dois integrantes na identificação da entrega.
-O PDF indica entrega até **02/11/2026**, com ZIP ou repositório e vídeo. O envio e as permissões de acesso devem ser conferidos pelos integrantes nas orientações do professor. Este projeto não realiza publicação nem envio.
 
 ## Fontes e atribuição
 

@@ -21,6 +21,9 @@ FEATURES = ['Region', 'Fresh', 'Milk', 'Grocery', 'Frozen',
 CHANNELS = {'HoReCa': 0, 'Retail': 1}
 REGIONS = {'Lisbon': 0, 'Oporto': 1, 'Other': 2}
 LABELS = ['HoReCa', 'Retail']
+DESCRICOES = {'Fresh': 'produtos frescos', 'Milk': 'laticínios',
+              'Grocery': 'mercearia', 'Frozen': 'congelados',
+              'Detergents Paper': 'detergentes e papel', 'Delicatessen': 'guloseimas'}
 
 
 def carregar_dados(caminho):
@@ -140,25 +143,67 @@ def comparar_modelos(caminho, saida):
     print(texto)
 
 
-def interagir(modelo):
-    print('Classificar novo cliente. Região: 0=Lisbon, 1=Oporto, 2=Other.')
-    print('Gastos anuais em unidades monetárias, inteiros não negativos.')
+def secao(titulo):
+    print(f'\n{"=" * 60}\n {titulo}\n{"=" * 60}')
+
+
+def prever_canal(modelo, entrada):
+    """Devolve (canal, confiança) para uma entrada já validada."""
+    probabilidades = modelo.predict_proba(entrada)[0]
+    indice = int(modelo.predict(entrada)[0])
+    return LABELS[indice], float(probabilidades[list(modelo.classes_).index(indice)])
+
+
+def ler_regiao():
+    """Lê a região por nome (Lisbon, Oporto, Other) ou número (0, 1, 2)."""
+    nomes = {nome.lower(): codigo for nome, codigo in REGIONS.items()}
     while True:
-        try:
-            valores = [int(input(f'{coluna}: ')) for coluna in FEATURES]
+        texto = input('Região [0=Lisbon, 1=Oporto, 2=Other]: ').strip().lower()
+        if texto in nomes:
+            return nomes[texto]
+        if texto in ('0', '1', '2'):
+            return int(texto)
+        print('  Região inválida. Digite Lisbon, Oporto, Other ou 0, 1, 2.')
+
+
+def ler_gasto(coluna):
+    """Lê um gasto anual inteiro não negativo, repetindo só este campo se errar."""
+    while True:
+        texto = input(f'{coluna} ({DESCRICOES[coluna]}, u.m./ano): ').strip()
+        if texto.isascii() and texto.isdigit() and int(texto) < 2**63:
+            return int(texto)
+        print('  Valor inválido. Use inteiro não negativo, só dígitos (ex.: 10000).')
+
+
+def perguntar_sim_nao(pergunta):
+    while True:
+        resposta = input(f'{pergunta} [s/N]: ').strip().lower()
+        if resposta in ('s', 'sim'):
+            return True
+        if resposta in ('', 'n', 'nao', 'não'):
+            return False
+        print('  Responda s ou n.')
+
+
+def interagir(modelo):
+    secao('Classificar um novo cliente')
+    print('Informe a região e os gastos anuais. Ctrl+C encerra a qualquer momento.')
+    try:
+        while True:
+            print()
+            valores = [ler_regiao()] + [ler_gasto(c) for c in FEATURES[1:]]
             entrada = criar_entrada(valores)
-        except ValueError as erro:
-            print(f'Entrada inválida: {erro} Tente novamente.\n')
-            continue
-        except (EOFError, KeyboardInterrupt):
-            print('\nEncerrado.')
-            break
-        print(f'Canal previsto: {LABELS[int(modelo.predict(entrada)[0])]}')
-        try:
-            if input('Classificar outro cliente? [s/N]: ').strip().lower() != 's':
+            print('\nDados informados:')
+            for coluna, valor in zip(FEATURES, valores):
+                texto = f'{valor} ({list(REGIONS)[valor]})' if coluna == 'Region' else f'{valor}'
+                print(f'  {coluna:<18}{texto}')
+            canal, confianca = prever_canal(modelo, entrada)
+            print(f'\n>> Canal previsto: {canal} (confiança {confianca:.1%})\n')
+            if not perguntar_sim_nao('Classificar outro cliente?'):
                 break
-        except (EOFError, KeyboardInterrupt):
-            break
+    except (EOFError, KeyboardInterrupt):
+        print()
+    print('Encerrado.')
 
 
 def main():
@@ -173,11 +218,17 @@ def main():
     args = parser.parse_args()
     try:
         entrada = criar_entrada(args.prever) if args.prever is not None else None
+        secao('Treinamento e avaliação (Decision Tree)')
+        print('Carregando dados e treinando o modelo...\n')
         modelo = treinar(args.dados, args.saida)
+        print(f'Arquivos salvos em: {args.saida}')
         if args.comparar:
+            secao('Comparação entre modelos')
             comparar_modelos(args.dados, args.saida)
         if entrada is not None:
-            print(f'Canal previsto: {LABELS[int(modelo.predict(entrada)[0])]}')
+            secao('Previsão')
+            canal, confianca = prever_canal(modelo, entrada)
+            print(f'Canal previsto: {canal} (confiança {confianca:.1%})')
         elif not args.sem_interacao:
             interagir(modelo)
     except (ValueError, OSError) as erro:

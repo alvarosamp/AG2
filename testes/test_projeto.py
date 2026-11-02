@@ -5,12 +5,13 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 import io
+from unittest.mock import patch
 
 import joblib
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from main import BASE, FEATURES, carregar_dados, criar_entrada, treinar
+from main import BASE, FEATURES, carregar_dados, criar_entrada, interagir, treinar
 
 
 class ProjetoTest(unittest.TestCase):
@@ -58,6 +59,29 @@ class ProjetoTest(unittest.TestCase):
             pred = pd.read_csv(saida / 'predicoes_teste.csv')
             self.assertTrue((salvo.predict(X) == pred.previsto.to_numpy()).all())
             self.assertEqual(salvo.n_features_in_, 7)
+
+    def _interagir(self, respostas):
+        class Falso:
+            classes_ = [0, 1]
+            def predict(self, X): return [1]
+            def predict_proba(self, X): return [[0.25, 0.75]]
+        saida = io.StringIO()
+        with patch('builtins.input', side_effect=respostas), redirect_stdout(saida):
+            interagir(Falso())
+        return saida.getvalue()
+
+    def test_interacao_regiao_por_nome_e_saida(self):
+        texto = self._interagir(['oporto', '1', '2', '3', '4', '5', '6', 'n'])
+        self.assertIn('Canal previsto: Retail (confiança 75.0%)', texto)
+        self.assertIn('1 (Oporto)', texto)
+
+    def test_interacao_repete_so_campo_invalido(self):
+        texto = self._interagir(['2', 'abc', '10', '-5', '1', '2', '3', '4', '5', 'não'])
+        self.assertEqual(texto.count('Valor inválido'), 2)
+        self.assertIn('Canal previsto', texto)
+
+    def test_interacao_encerra_no_eof(self):
+        self.assertIn('Encerrado.', self._interagir(['2', '1', EOFError()]))
 
 
 if __name__ == '__main__':
