@@ -7,7 +7,9 @@ Classifica clientes em **HoReCa** (hotel, restaurante ou café) ou **Retail** (v
 
 ## Vídeo de apresentação
 
-O vídeo de apresentação do projeto (~10 MB) está na raiz do repositório: [apresentacao.mp4](apresentacao.mp4).
+**Assista no YouTube:** https://youtu.be/dSkhwvtdbNg
+
+O vídeo de apresentação do projeto (~10 MB) também está na raiz do repositório: [apresentacao.mp4](apresentacao.mp4).
 
 **Como assistir**
 
