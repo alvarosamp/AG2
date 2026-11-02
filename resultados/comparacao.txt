@@ -1,0 +1,9 @@
+Comparação entre os modelos permitidos pelo enunciado
+Mesma divisão treino/teste (random_state=42, stratify=Channel).
+kNN, MLP e Naive Bayes usam StandardScaler; a árvore não precisa.
+
+Modelo                  Acurácia  F1 macro
+Decision Tree           93.1818%    0.9214
+k-Nearest Neighbors     90.9091%    0.8931
+Multilayer Perceptron   89.7727%    0.8853
+Naive Bayes             90.9091%    0.8952

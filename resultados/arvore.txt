@@ -3,32 +3,17 @@
 |   |   |--- Grocery <= 4480.50
 |   |   |   |--- class: 0
 |   |   |--- Grocery >  4480.50
-|   |   |   |--- Region <= 0.50
-|   |   |   |   |--- class: 0
-|   |   |   |--- Region >  0.50
-|   |   |   |   |--- class: 0
-|   |--- Grocery >  8591.00
-|   |   |--- Delicatessen <= 1735.50
-|   |   |   |--- class: 1
-|   |   |--- Delicatessen >  1735.50
 |   |   |   |--- class: 0
+|   |--- Grocery >  8591.00
+|   |   |--- class: 0
 |--- Detergents Paper >  1753.00
 |   |--- Detergents Paper <= 3500.50
 |   |   |--- Fresh <= 6845.00
-|   |   |   |--- Milk <= 6637.00
-|   |   |   |   |--- class: 0
-|   |   |   |--- Milk >  6637.00
-|   |   |   |   |--- class: 0
-|   |   |--- Fresh >  6845.00
-|   |   |   |--- Milk <= 3660.00
-|   |   |   |   |--- class: 0
-|   |   |   |--- Milk >  3660.00
-|   |   |   |   |--- class: 1
-|   |--- Detergents Paper >  3500.50
-|   |   |--- Milk <= 2830.50
 |   |   |   |--- class: 0
-|   |   |--- Milk >  2830.50
-|   |   |   |--- Grocery <= 6923.50
-|   |   |   |   |--- class: 1
-|   |   |   |--- Grocery >  6923.50
-|   |   |   |   |--- class: 1
+|   |   |--- Fresh >  6845.00
+|   |   |   |--- class: 1
+|   |--- Detergents Paper >  3500.50
+|   |   |--- Grocery <= 8443.50
+|   |   |   |--- class: 1
+|   |   |--- Grocery >  8443.50
+|   |   |   |--- class: 1

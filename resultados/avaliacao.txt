@@ -1,17 +1,18 @@
 Amostras: 440 | Treino: 352 | Teste: 88
+Melhores hiperparâmetros (validação cruzada no treino, 5 folds): {'max_depth': 3, 'min_samples_leaf': 10} (f1_macro=0.8782)
 Acurácia: 93.1818%
 Baseline (classe majoritária): 68.1818%
 
               precision    recall  f1-score   support
 
-      HoReCa     0.9500    0.9500    0.9500        60
-      Retail     0.8929    0.8929    0.8929        28
+      HoReCa     0.9655    0.9333    0.9492        60
+      Retail     0.8667    0.9286    0.8966        28
 
     accuracy                         0.9318        88
-   macro avg     0.9214    0.9214    0.9214        88
-weighted avg     0.9318    0.9318    0.9318        88
+   macro avg     0.9161    0.9310    0.9229        88
+weighted avg     0.9341    0.9318    0.9324        88
 
 Matriz de confusão (linhas=reais; colunas=previstas):
 Ordem: HoReCa, Retail
-[[57  3]
- [ 3 25]]
+[[56  4]
+ [ 2 26]]

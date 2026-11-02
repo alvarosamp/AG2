@@ -11,53 +11,58 @@
   ],
   "matriz_confusao": [
     [
-      57,
-      3
+      56,
+      4
     ],
     [
-      3,
-      25
+      2,
+      26
     ]
   ],
   "parametros": {
     "ccp_alpha": 0.0,
     "class_weight": null,
     "criterion": "gini",
-    "max_depth": 4,
+    "max_depth": 3,
     "max_features": null,
     "max_leaf_nodes": null,
     "min_impurity_decrease": 0.0,
-    "min_samples_leaf": 5,
+    "min_samples_leaf": 10,
     "min_samples_split": 2,
     "min_weight_fraction_leaf": 0.0,
     "monotonic_cst": null,
     "random_state": 42,
     "splitter": "best"
   },
+  "cv_melhores_parametros": {
+    "max_depth": 3,
+    "min_samples_leaf": 10
+  },
+  "cv_f1_macro": 0.8782460701455493,
   "classification_report": {
     "HoReCa": {
-      "precision": 0.95,
-      "recall": 0.95,
-      "f1-score": 0.95,
+      "precision": 0.9655172413793104,
+      "recall": 0.9333333333333333,
+      "f1-score": 0.9491525423728814,
       "support": 60.0
     },
     "Retail": {
-      "precision": 0.8928571428571429,
-      "recall": 0.8928571428571429,
-      "f1-score": 0.8928571428571429,
+      "precision": 0.8666666666666667,
+      "recall": 0.9285714285714286,
+      "f1-score": 0.896551724137931,
       "support": 28.0
     },
     "accuracy": 0.9318181818181818,
     "macro avg": {
-      "precision": 0.9214285714285715,
-      "recall": 0.9214285714285715,
-      "f1-score": 0.9214285714285715,
+      "precision": 0.9160919540229886,
+      "recall": 0.930952380952381,
+      "f1-score": 0.9228521332554063,
       "support": 88.0
     },
     "weighted avg": {
-      "precision": 0.9318181818181818,
+      "precision": 0.9340647857889237,
       "recall": 0.9318181818181818,
-      "f1-score": 0.9318181818181818,
+      "f1-score": 0.9324159183890337,
       "support": 88.0
     }
   }

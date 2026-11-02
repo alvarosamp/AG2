@@ -6,8 +6,13 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier, export_text
 
 BASE = Path(__file__).resolve().parent
@@ -57,9 +62,15 @@ def treinar(caminho, saida):
     X, y = df[FEATURES], df['Channel']
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.20, random_state=42, stratify=y)
-    # Configuração fixada antes de avaliar o teste. Não há ajuste pelo teste.
-    modelo = DecisionTreeClassifier(max_depth=4, min_samples_leaf=5, random_state=42)
-    modelo.fit(X_train, y_train)
+    # Hiperparâmetros escolhidos por validação cruzada só no treino (5 folds,
+    # métrica f1_macro). O teste nunca participa da busca, só da avaliação final.
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    busca = GridSearchCV(
+        DecisionTreeClassifier(random_state=42),
+        {'max_depth': [3, 4, 5, 6, 8, None], 'min_samples_leaf': [1, 2, 5, 10, 15]},
+        cv=cv, scoring='f1_macro')
+    busca.fit(X_train, y_train)
+    modelo = busca.best_estimator_
     pred = modelo.predict(X_test)
     relatorio = classification_report(y_test, pred, labels=[0, 1],
                                      target_names=LABELS, digits=4, zero_division=0)
@@ -69,10 +80,14 @@ def treinar(caminho, saida):
               'baseline_majoritaria': float((y_test == y_train.mode()[0]).mean()),
               'ordem_classes': LABELS, 'matriz_confusao': matriz.tolist(),
               'parametros': modelo.get_params(),
+              'cv_melhores_parametros': busca.best_params_,
+              'cv_f1_macro': busca.best_score_,
               'classification_report': classification_report(
                   y_test, pred, labels=[0, 1], target_names=LABELS,
                   output_dict=True, zero_division=0)}
     texto = (f'Amostras: {len(df)} | Treino: {len(X_train)} | Teste: {len(X_test)}\n'
+             f'Melhores hiperparâmetros (validação cruzada no treino, 5 folds): '
+             f'{resumo["cv_melhores_parametros"]} (f1_macro={resumo["cv_f1_macro"]:.4f})\n'
              f'Acurácia: {resumo["acuracia"]:.4%}\n'
              f'Baseline (classe majoritária): {resumo["baseline_majoritaria"]:.4%}\n\n'
              + relatorio + '\nMatriz de confusão (linhas=reais; colunas=previstas):\n'
@@ -91,6 +106,38 @@ def treinar(caminho, saida):
     joblib.dump(modelo, saida / 'modelo.joblib')
     print(texto)
     return modelo
+
+
+def comparar_modelos(caminho, saida):
+    """Treina os quatro algoritmos permitidos pelo enunciado na mesma divisão
+    treino/teste e compara o desempenho, só para justificar a escolha da
+    Decision Tree. kNN, MLP e Naive Bayes recebem um StandardScaler, já que,
+    ao contrário da árvore, são sensíveis à escala dos atributos."""
+    df = carregar_dados(caminho)
+    X, y = df[FEATURES], df['Channel']
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.20, random_state=42, stratify=y)
+    candidatos = {
+        'Decision Tree': DecisionTreeClassifier(max_depth=4, min_samples_leaf=5, random_state=42),
+        'k-Nearest Neighbors': make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=5)),
+        'Multilayer Perceptron': make_pipeline(
+            StandardScaler(), MLPClassifier(max_iter=2000, random_state=42)),
+        'Naive Bayes': make_pipeline(StandardScaler(), GaussianNB()),
+    }
+    linhas = [f'{"Modelo":<22}{"Acurácia":>10}{"F1 macro":>10}']
+    for nome, modelo in candidatos.items():
+        modelo.fit(X_train, y_train)
+        pred = modelo.predict(X_test)
+        acc = accuracy_score(y_test, pred)
+        f1 = f1_score(y_test, pred, average='macro')
+        linhas.append(f'{nome:<22}{acc:>10.4%}{f1:>10.4f}')
+    texto = ('Comparação entre os modelos permitidos pelo enunciado\n'
+              'Mesma divisão treino/teste (random_state=42, stratify=Channel).\n'
+              'kNN, MLP e Naive Bayes usam StandardScaler; a árvore não precisa.\n\n'
+              + '\n'.join(linhas) + '\n')
+    saida.mkdir(parents=True, exist_ok=True)
+    (saida / 'comparacao.txt').write_text(texto, encoding='utf-8')
+    print(texto)
 
 
 def interagir(modelo):
@@ -121,10 +168,14 @@ def main():
     parser.add_argument('--sem-interacao', action='store_true', help='Somente treinar e avaliar.')
     parser.add_argument('--prever', type=int, nargs=7, metavar='VALOR',
                         help='Região, Fresh, Milk, Grocery, Frozen, Detergents Paper, Delicatessen.')
+    parser.add_argument('--comparar', action='store_true',
+                        help='Compara Decision Tree, kNN, MLP e Naive Bayes na mesma divisão.')
     args = parser.parse_args()
     try:
         entrada = criar_entrada(args.prever) if args.prever is not None else None
         modelo = treinar(args.dados, args.saida)
+        if args.comparar:
+            comparar_modelos(args.dados, args.saida)
         if entrada is not None:
             print(f'Canal previsto: {LABELS[int(modelo.predict(entrada)[0])]}')
         elif not args.sem_interacao:
