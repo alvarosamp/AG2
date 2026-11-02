@@ -3,7 +3,7 @@
 Projeto da atividade de Engenharias de Computação e Software do Inatel.
 Classifica clientes em **HoReCa** (hotel, restaurante ou café) ou **Retail** (varejo), usando uma árvore de decisão e sete atributos do conjunto Wholesale customers.
 
-**Integrantes:** Álvaro Careli, <nome do segundo integrante>
+**Integrantes:** Álvaro Careli, Iury Teixeira
 
 ## Executar
 
