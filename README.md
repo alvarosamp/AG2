@@ -110,6 +110,28 @@ A árvore venceu nesta divisão, por isso foi o modelo escolhido para o restante
 
 Cada execução treina de novo e atualiza os resultados. Caminhos alternativos podem ser informados com `--dados` e `--saida`.
 
+## Testar em Docker
+
+Para testar o modelo isolado do ambiente local, via API HTTP:
+
+```bash
+docker build -t ag2-classificador .
+docker run -p 8000:8000 ag2-classificador
+```
+
+O `Dockerfile` treina o modelo no momento do build (`python main.py --sem-interacao`) e sobe uma API com `app.py` (FastAPI). Endpoints:
+
+- `GET /health`: confirma que o modelo foi carregado.
+- `POST /predict`: recebe os sete atributos em JSON e devolve o canal previsto e as probabilidades.
+
+```bash
+curl -s -X POST http://localhost:8000/predict \
+  -H 'Content-Type: application/json' \
+  -d '{"Region":2,"Fresh":10000,"Milk":5000,"Grocery":8000,"Frozen":1000,"Detergents Paper":3000,"Delicatessen":1000}'
+```
+
+A API é só para teste manual do modelo treinado; não é a entrega exigida pelo enunciado, que pede apenas o script interativo.
+
 Para usar o modelo salvo em Python:
 
 ```python
